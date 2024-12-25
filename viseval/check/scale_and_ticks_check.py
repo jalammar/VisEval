@@ -28,6 +28,7 @@ Report your findings, focusing solely on scale and tick appropriateness without 
 
 def scale_and_ticks_check(context: dict, query: str, vision_model: BaseChatModel):
     base64 = context["base64"]
+    
     encoding = context["encoding"]
     chart = context["chart"]
     if chart == "pie":
@@ -49,7 +50,7 @@ def scale_and_ticks_check(context: dict, query: str, vision_model: BaseChatModel
                     },
                     {
                         "type": "image_url",
-                        "image_url": base64,
+                        "image_url": {"url": base64},
                     },
                 ]
             )

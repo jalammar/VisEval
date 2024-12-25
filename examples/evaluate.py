@@ -103,10 +103,11 @@ def _main():
         {"num_examples": args.num_examples, "library": args.library},
     )
 
-    from langchain_openai import AzureChatOpenAI
+    # from langchain_openai import AzureChatOpenAI
+    from langchain_openai import ChatOpenAI
 
-    vision_model = AzureChatOpenAI(
-        model_name="gpt-4-turbo-v",
+    vision_model = ChatOpenAI(
+        model_name="gpt-4o-mini",
         max_retries=999,
         temperature=0.0,
         request_timeout=20,

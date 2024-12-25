@@ -12,6 +12,15 @@ from viseval.agent import Agent, ChartExecutionResult
 
 from .utils import show_svg
 
+def remove_plt_show(code_string):
+    # Split the code into lines
+    lines = code_string.splitlines()
+    
+    # Filter out any lines containing plt.show()
+    cleaned_lines = [line for line in lines if 'plt.show()' not in line.strip()]
+    
+    # Join the lines back together
+    return '\n'.join(cleaned_lines)
 
 def read_table(name, url, format):
     code = f"{name}_dataset = pd.read_csv('{url}')"
@@ -41,7 +50,7 @@ class CoML4VIS(Agent):
         )
 
     def pre_code(self, tables: list[dict], chart_lib: str, table_format: str = "coml"):
-        codes = ["import pandas as pd\nimport matplotlib.pyplot as plt\n"]
+        codes = ["import pandas as pd\nimport matplotlib.pyplot as plt\nplt.ioff()"]
         variable_descriptions = {}
         if chart_lib == "seaborn":
             codes[-1] += "import seaborn as sns\n"
@@ -58,9 +67,9 @@ class CoML4VIS(Agent):
         table_format = config["table_format"] if "table_format" in config else "coml"
 
         pre_codes, variable_descriptions = self.pre_code(tables, library, table_format)
-        generating_context = self.coml.generate_code(
-            nl_query, variable_descriptions, pre_codes
-        )
+        # generating_context = self.coml.generate_code(
+        #     nl_query, variable_descriptions, pre_codes
+        # )
         try:
             generating_context = self.coml.generate_code(
                 nl_query, variable_descriptions, pre_codes
@@ -78,13 +87,18 @@ class CoML4VIS(Agent):
         library = context["library"]
 
         global_env = {"svg_string": None, "show_svg": show_svg, "svg_name": log_name}
+        code = remove_plt_show(code)
         code += "\nsvg_string = show_svg(plt, svg_name)"
+        # code += f"\nplt.savefig(svg_name, format='svg')"
         try:
+            # print('code:\n', code)
             exec(code, global_env)
             svg_string = global_env["svg_string"]
+            # print('svg_string:\n', svg_string)
             return ChartExecutionResult(status=True, svg_string=svg_string)
         except Exception as exception_error:
             try:
+                # print('#####\nexception_error')
                 # handle old version
                 codes, variable_descriptions = self.pre_code(tables, library)
                 exec("\n".join(codes) + "\n" + code, global_env)

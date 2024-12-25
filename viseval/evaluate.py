@@ -19,6 +19,7 @@ from .check import (
     order_check,
     readability_check,
     scale_and_ticks_check,
+    surface_form_check
 )
 from .dataset import Dataset
 
@@ -129,6 +130,8 @@ class EvaluationResult:
             ]
             if pass_count > 0:
                 record["readability_score"] = sum(evaluate_result) / pass_count
+            else: 
+                record["readability_score"] = 0
 
             record["quality_score"] = sum(evaluate_result) / count
 
@@ -171,6 +174,7 @@ class Evaluator:
         self.vision_model = vision_model
 
     def evaluate(self, agent, dataset, config):
+        print('evaluate')
         use_logs = False
         evaluation_details = []
         if "logs" in config:
@@ -189,7 +193,9 @@ class Evaluator:
             except Exception as e:
                 print(e)
 
+        print('logs')
         for instance in dataset.benchmark:
+            print('instance')
             codes = []
             instance_results = []
             nl_queries = instance["nl_queries"]
@@ -224,6 +230,8 @@ class Evaluator:
                         os.makedirs(instanceFolder)
 
             for index in range(len(nl_queries)):
+
+                print('nl_queries')
                 nl_query = nl_queries[index]
                 if index < len(codes):
                     code = codes[index]
@@ -233,6 +241,7 @@ class Evaluator:
                     code, context = agent.generate(nl_query, tables, config)
                     codes.append(code)
                 if code is None:
+                    print('code is None')
                     results = [
                         CheckResult(
                             answer=False,
@@ -241,6 +250,8 @@ class Evaluator:
                         )
                     ]
                 else:
+
+                    print('library')
                     context["library"] = config["library"]
                     if use_logs:
                         results = self.validity_check(
@@ -264,6 +275,7 @@ class Evaluator:
 
                 instance_results.append(results)
 
+            print(instance["id"], instance_results)
             evaluation_details.append(
                 EvaluationDetail(instance["id"], instance_results)
             )
